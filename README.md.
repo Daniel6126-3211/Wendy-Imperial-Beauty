@@ -1,0 +1,114 @@
+# Wendy Beauty & Spa — Full Stack (Next.js + Supabase)
+
+The real backend: a Postgres database (via Supabase) behind an admin
+dashboard, with the same premium storefront on top. Products, homepage
+content, bookings, enquiries, team and reviews are all editable from
+`/admin` — no code changes needed for day-to-day updates.
+
+## Stack
+
+- **Next.js 14** (App Router, TypeScript, Server Actions)
+- **Supabase**: Postgres database, Auth (admin login), Storage (product/banner photos)
+- **Deployed on Vercel**, same as the front-end-only version
+
+Cart and wishlist still live in the visitor's browser (localStorage) — there's
+still no payment gateway, by design: every "Add to Bag" or booking is an
+**enquiry**, confirmed by your team on WhatsApp, matching the original brief.
+
+---
+
+## 1. Create your Supabase project
+
+1. Go to [supabase.com](https://supabase.com) → **New project**. Pick a name, a
+   database password (save it somewhere), and a region close to Nigeria (EU
+   West / Frankfurt is usually fastest).
+2. Once it's ready, open **SQL Editor**, paste the contents of
+   `supabase/schema.sql`, and click **Run**. This creates every table, the
+   security rules (RLS) that keep customer data private, and a public storage
+   bucket for photos.
+3. *(Optional)* Paste and run `supabase/seed.sql` too, for some starting
+   sample products so the site isn't empty on first load.
+4. Create your admin login: **Authentication → Users → Add user** — set an
+   email and password (this is what you'll use to sign in at `/admin`).
+5. Copy that user's **UID** (shown in the users table), go back to
+   **SQL Editor**, and run:
+   ```sql
+   insert into admin_users (user_id) values ('paste-the-uid-here');
+   ```
+   This is what actually grants admin access — creating a login alone isn't
+   enough, on purpose, so a stray signup can never reach the dashboard.
+6. Go to **Settings → API** and copy the **Project URL** and **anon public
+   key** — you'll need these next.
+
+## 2. Configure the app
+
+```bash
+cd wendy-beauty-spa-app
+cp .env.example .env.local
+```
+Paste your Project URL and anon key into `.env.local`.
+
+```bash
+npm install
+npm run dev
+```
+Visit `http://localhost:3000` for the storefront and
+`http://localhost:3000/admin` to sign in with the login you created above.
+
+## 3. Push to GitHub
+
+```bash
+git init
+git add .
+git commit -m "Wendy Beauty & Spa — full stack"
+git branch -M main
+git remote add origin https://github.com/<your-username>/wendy-beauty-spa.git
+git push -u origin main
+```
+
+## 4. Deploy on Vercel
+
+1. [vercel.com](https://vercel.com) → **Add New… → Project** → import the
+   GitHub repo. Framework preset: **Next.js** (auto-detected).
+2. Before deploying, add the environment variables from `.env.local` under
+   **Settings → Environment Variables**:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. Click **Deploy**. Every future `git push` to `main` redeploys
+   automatically, database and all — nothing else to configure.
+
+---
+
+## What's editable from `/admin`, without touching code
+
+| Section | What it controls |
+|---|---|
+| Products | Name, category, description, price (or "on request"), availability, badge, colors, sizes, photo |
+| Homepage | Hero headline/subtext/CTA and any other homepage banner |
+| Bookings | Every Beauty & Spa appointment request, with a status you update as you follow up |
+| Enquiries | A log of "Request Order Confirmation" taps from customer bags |
+| Team | Team member names, role groups, photos |
+| Reviews | Genuine customer reviews (unpublished by default — nothing shows until you approve it) |
+| Settings | Both WhatsApp numbers, contact email, site tagline |
+
+## Security notes
+
+- `/admin` is gated two ways: `middleware.ts` redirects signed-out visitors
+  to the login page, **and** every database write is independently checked
+  against the `admin_users` table by Postgres itself (Row Level Security).
+  Even if someone bypassed the app entirely, the database would still refuse
+  their writes.
+- Never commit `.env.local` — it's already in `.gitignore`.
+- The anon key is meant to be public (it's used in the browser); what keeps
+  data safe is the RLS policies in `schema.sql`, not keeping that key secret.
+
+## Extending it further
+
+- **Payments**: add Paystack or Flutterwave once you're ready to charge
+  directly instead of confirming orders on WhatsApp.
+- **Email notifications**: a Supabase Edge Function + Resend/SendGrid can
+  email you the moment a booking or enquiry comes in, instead of checking
+  `/admin` manually.
+- **SEO/sitemap**: `app/sitemap.ts` and `app/robots.ts` can be added the same
+  way as any Next.js route if you want them generated dynamically from your
+  product list.
