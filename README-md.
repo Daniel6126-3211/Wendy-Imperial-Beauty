@@ -1,0 +1,91 @@
+# Wendy Beauty & Spa — Website
+
+Premium, mobile-first storefront for Wendy Beauty & Spa (wigs & hair, cosmetics,
+beauty & spa services, women's fashion, shoes, skincare and accessories).
+
+This is a **static site** — plain HTML/CSS/JS, no build step, no server required.
+That means it deploys to Vercel in about two minutes, and you can push updates
+straight from GitHub.
+
+## What's included
+
+- `index.html` — the full one-page site (header, hero, categories, shop, booking, about, team, contact, footer)
+- `styles.css` — the design system (colors, type, layout)
+- `script.js` — product catalogue, cart/wishlist (saved in the visitor's browser), search, WhatsApp links, booking form
+- `robots.txt`, `sitemap.xml` — basic SEO plumbing
+
+## What's *not* built yet
+
+This first version is the storefront **front end**. It does not yet include:
+- A real backend, database, or payment gateway
+- The admin dashboard (to edit products, prices, banners, bookings, etc. without touching code)
+- Persisted orders/bookings (right now, "Add to Bag" and the booking form open a
+  pre-filled WhatsApp message — nothing is charged or stored on a server)
+
+When you're ready for that layer, the natural next step is Next.js + a database
+(e.g. Supabase or Postgres) with an admin area, deployed the same way on Vercel.
+Happy to build that next if you want it.
+
+## Product data
+
+All product info (names, descriptions, categories) lives in `script.js` in the
+`PRODUCTS` array near the top. Every product currently has `price: null` and
+`available: null`, which the site shows as **"PRICE ON REQUEST"** and
+**"AVAILABILITY TO BE CONFIRMED"** — exactly as specified, so nothing is invented.
+To set a real price, change `price: null` to `price: 25000` (for example).
+
+## WhatsApp numbers
+
+Both numbers are wired in as constants at the top of `script.js`:
+```js
+const WA1 = "2348137609506";
+const WA2 = "2349012314878";
+```
+Update these in one place if the numbers ever change.
+
+---
+
+## Deploy: GitHub + Vercel
+
+### 1. Push this folder to GitHub
+
+If you don't already have a repo:
+```bash
+cd wendy-beauty-spa
+git init
+git add .
+git commit -m "Initial site"
+```
+Then create a new empty repository on GitHub (github.com → **New repository** →
+don't initialize with a README), and push:
+```bash
+git branch -M main
+git remote add origin https://github.com/<your-username>/wendy-beauty-spa.git
+git push -u origin main
+```
+
+### 2. Deploy on Vercel
+
+1. Go to [vercel.com](https://vercel.com) and sign in (you can sign in with your GitHub account directly).
+2. Click **Add New… → Project**.
+3. Select the `wendy-beauty-spa` GitHub repo you just pushed.
+4. Framework preset: choose **Other** (this is a static site — no build command, no install command, no output directory needed).
+5. Click **Deploy**.
+
+Vercel will give you a live URL immediately (e.g. `wendy-beauty-spa.vercel.app`).
+From then on, every `git push` to `main` auto-deploys the update — no need to
+click Deploy again.
+
+### 3. Add your own domain (optional)
+
+In the Vercel project → **Settings → Domains**, add your domain (e.g.
+`wendybeautyandspa.com`) and follow the DNS instructions Vercel shows you.
+
+---
+
+## Making changes later
+
+- **Text/prices/products** → edit `PRODUCTS` in `script.js`
+- **Colors/fonts/spacing** → edit the `:root` variables at the top of `styles.css`
+- **Sections/copy** → edit `index.html` directly
+- Commit and push — Vercel redeploys automatically.
